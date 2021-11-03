@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>Blog</h1>
+  <div id="app">
+
+
+  <ul >
+
+    <li v-for="post in posts">
+      <h2><a v-bind:href="'/blog/' + post.slug">{{ post.title }}</a></h2>
+      <p>{{ post.content }}</p>
+      <img  v-bind:src="post.thumbnail.url" alt="image">
+    </li>
+  </ul>
+
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <script>
+
+    var app = new Vue({
+      el: '#app',
+      data: {
+        posts: []
+      },
+      mounted: function() {
+        axios.get('http://localhost:1337/articles')
+          .then(function(response) {
+            this.posts = response.data;
+          }.bind(this));
+      },
+
+    });
+
+
+  </script>
+</body>
+</html>
