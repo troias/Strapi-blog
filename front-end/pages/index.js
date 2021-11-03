@@ -5,7 +5,6 @@ import useRouter from 'next/router'
 
 
 const Home = (props) => {
-  console.log(props)
 
 
 

@@ -15,3 +15,16 @@ export const getAllPosts  = async () => {
         return res
     
 }
+
+export const addPost = async (post) => {
+    
+    const req = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/posts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(post)
+    })
+    const res = await req.json()
+    return res
+}

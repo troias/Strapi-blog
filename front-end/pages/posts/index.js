@@ -18,8 +18,7 @@ export const getStaticProps = async (ctx) => {
     const req = await fetch(`${server}/posts`)
     const res = await req.json()
   
-    console.log(res)
-  
+    
     return {
       props: {
         posts: res
