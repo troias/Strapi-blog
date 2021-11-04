@@ -1,18 +1,18 @@
-import {addPost} from '../../helper/strapiApi'
+import { addPost } from '../../helper/strapiApi'
+
 
 const Handler = async (req, res) => {
-    
+
     if (req.method === 'GET') {
-     
+
     }
 
     if (req.method === 'POST') {
 
         const postData = req.body
-        // console.log(postData)
         const addPostToStrapi = await addPost(postData)
         const response = await addPostToStrapi
-        // console.log("postApi", response)
+        console.log("postApi", response)
         res.status(200).json(response)
         // await addPost(req.body)
         // .then(post => {
@@ -24,11 +24,11 @@ const Handler = async (req, res) => {
     }
 
     if (req.method === 'PATCH') {
-     
+
     }
 
     if (req.method === 'DELETE') {
-     
+
     }
 
 }

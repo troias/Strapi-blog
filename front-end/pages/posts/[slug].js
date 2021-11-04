@@ -5,9 +5,9 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 
 const PostDetail = ({ post }) => {
-    console.log("postProps", post)
-    const { query } = useRouter()
-    console.log("params", query)
+
+    // const { query } = useRouter()
+ 
     return (
         <div>
             {post.description}
