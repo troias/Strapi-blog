@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-
+import {useState} from 'react';
 import * as Yup from "yup";
 import classes from "./createPostPage.module.css";
 
@@ -16,15 +16,24 @@ const CreatePostSchema = Yup.object().shape({
 });
 
 const AddPostForm = () => {
+
+    const [error, setError] = useState(null);
+
     const addPostHandler = async (postObj) => {
 
-        const req = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/posts`, {
-            method: 'POST',
-            body: postObj
-        })
-
-        const res = await req.json()
-        console.log("handlerObjResp", res);
+        try {
+            const req = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/posts`, {
+                method: 'POST',
+                body: postObj
+            })
+    
+            const res = await req.json()
+            console.log("handlerObjResp", res);
+        } catch (error) {
+            console.log("error", error);
+        }
+       
+       
     };
 
     const formik = useFormik({
@@ -36,11 +45,11 @@ const AddPostForm = () => {
         validationSchema: CreatePostSchema,
 
         onSubmit: async (values) => {
-            console.log("values", values);
+         
 
             // console.log("data", data);
             const formData = new FormData()
-            formData.append('data', JSON.stringify({ description: values.description, title: values.title }))
+            formData.append('data', JSON.stringify({ description: values.description, title: values.title, slug: values.title }))
             formData.append('files.image', values.file)
 
             await addPostHandler(formData);
@@ -49,6 +58,8 @@ const AddPostForm = () => {
     // console.log("formik", formik);
     return (
         <div className={classes.addPostContainer}>
+
+            {error && <div className={classes.error}>{error}</div>}
             <form onSubmit={formik.handleSubmit}>
                 <div>
                     <label htmlFor="title">Title</label>
