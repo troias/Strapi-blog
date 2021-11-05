@@ -1,81 +1,154 @@
+import { getPostBySlug, getAllPosts } from "../../helper/strapiApi";
+import { formatImgUrl } from "../../helper/helperFunctions";
+import Image from "next/image";
+import { useState, useRef, useEffect, useContext } from "react";
+import { useRouter } from "next/router";
+import classes from "../../components/posts/post.module.css";
+import {AuthContext} from '../../context/authContext'
 
-import { getPostBySlug, getAllPosts } from '../../helper/strapiApi'
-import { formatImgUrl } from '../../helper/helperFunctions'
-import Image from 'next/image'
-import { useRouter } from 'next/router'
 
 const PostDetail = ({ post }) => {
 
-    // const { query } = useRouter()
+    const {user, setUser} = useContext(AuthContext)
+
+    const { query } = useRouter()
+
+    console.log("query", query)
+    console.log("user", user)
+
+    const titleRef = useRef();
+    const descRef = useRef();
+
+    const [edit, setEdit] = useState(false);
+
+
+    useEffect(() => {
+        if (edit) {
+            titleRef.current.focus();
+        }
+    }, [edit]);
+
+
 
     const deleteHandler = async () => {
         try {
             const req = await fetch(`http://localhost:1337/posts/${post.id}`, {
-                method: 'DELETE',
+                method: "DELETE",
                 headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            const res = await req.json()
-            console.log(res)
-            window.location.href = '/posts'
+                    "Content-Type": "application/json",
+                },
+            });
+            const res = await req.json();
+            console.log(res);
+            window.location.href = "/posts";
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
- 
+    };
+
+    const editToggleHandler = () => {
+        setEdit(!edit);
+    };
+    const editHandler = async (e) => {
+        e.preventDefault();
+
+        const title = titleRef.current.value;
+        const desc = descRef.current.value;
+
+        try {
+            const req = await fetch(`http://localhost:1337/posts/${post.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: desc,
+                }),
+            });
+            const res = await req.json();
+
+            console.log(res);
+            
+
+           window.location.href = "/posts";
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     return (
-        <div>
-            {post.description}
-            {post.title}
-            {post.likes}
-            {/* {post.author.email} */}
-            {post.createdAt}
-            {post.updatedAt}
-            {post.id}
-            {post.slug}
-            <Image src={formatImgUrl(post.image[0].url)} width={200} height={200} />
-            {post.image.url}
-            <button type="button" onClick={deleteHandler}>Delete</button>
+        <div className={classes.container}>
+            <div className="">
+                <div className="">
+                    <div className="card">
+                        <div className="card-body">
+                            <div className="row">
+                                <div className="col-md-12">
+                                    <h1 className="card-title">{post.title}</h1>
+                                    <p className="card-text">{post.description}</p>
+                                    <Image
+                                        src={formatImgUrl(post.image[0].url)}
+                                        width={200}
+                                        height={200}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" onClick={deleteHandler}>
+                        Delete
+                    </button>
+                </div>
+                <div>
+                    <button type="button" onClick={editToggleHandler}>
+                        Edit
+                    </button>
+                </div>
+                <div className={classes.edit}>
+                    {edit && (
+                        <form onSubmit={editHandler} className={classes.editForm}>
+                            <input type="text" name="title" ref={titleRef} placeholder="edit title" />
+                            <input type="text" name="description" ref={descRef} placeholder="edit desc" />
+                            <div>
+                                <button type="submit">Submit</button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export const getStaticPaths = async (props) => {
-    const posts = await getAllPosts()
-    const paths = posts.map(post => ({
-        params: { slug: post.slug }
-    }))
-   
+export const getStaticPaths = async (ctx) => {
+    const posts = await getAllPosts();
+    const paths = posts.map((post) => ({
+        params: { slug: post.slug },
+    }));
+
     return {
-        
-        paths: paths, fallback: false
-
-
-    }
-}
-
+        paths: paths,
+        fallback: false,
+    };
+};
 
 export const getStaticProps = async ({ params }) => {
-    let post = []
-  
+    let post = [];
+
     try {
-        post = await getPostBySlug(params.slug)
-    } catch (error) {
-        
-    }
-   
- 
- 
+        post = await getPostBySlug(params.slug);
+    } catch (error) { }
 
     return {
-
         props: {
             post: {
-                ...post[0]
-
-            }
-        }
-    }
-}
-export default PostDetail
+                ...post[0],
+            },
+        }, revalidate: 6
+    };
+};
+export default PostDetail;

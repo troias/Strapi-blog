@@ -29,6 +29,7 @@ const AddPostForm = () => {
     
             const res = await req.json()
             console.log("handlerObjResp", res);
+            window.location.href = "/posts";
         } catch (error) {
             console.log("error", error);
         }
@@ -58,7 +59,6 @@ const AddPostForm = () => {
     // console.log("formik", formik);
     return (
         <div className={classes.addPostContainer}>
-
             {error && <div className={classes.error}>{error}</div>}
             <form onSubmit={formik.handleSubmit}>
                 <div>
