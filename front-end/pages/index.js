@@ -2,10 +2,15 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import useRouter from 'next/router'
+import {useContext} from 'react'
+import {AuthContext} from '../context/authContext'
 
 
 const Home = (props) => {
 
+  const {user,getUser} = useContext(AuthContext)
+  console.log("user", user)
+  console.log("getUser", getUser())
 
 
   return (

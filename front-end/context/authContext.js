@@ -1,6 +1,11 @@
-import  React, { useState } from "react";
+import React, { useState } from "react";
 
- export const AuthContext = React.createContext(null);
+export const AuthContext = React.createContext({
+    user: {
+        name: "",
+        password: "",
+    },
+});
 
 
 const AuthProvider = (props) => {
@@ -9,25 +14,16 @@ const AuthProvider = (props) => {
     const [user, setUser] = useState();
 
 
-
     const authObject = {
         isLoggedIn,
-        user,
+        user: user,
         setUser,
-        // login: (user) => {
-        //     authObject.isLoggedIn = true;
-        //     authObject.user = user;
-        // },
-        // logout: () => {
-        //     authObject.isLoggedIn = false;
-        //     authObject.user = {
-        //         name: "",
-        //         email: "",
-        //         password: "",
-        //         confirmPassword: "",
-        //         isAdmin: false
-        //     };
-        // },
+
+        logout: () => {
+            // setIsLoggedIn(false),
+            authObject.setUser(null);
+
+        },
         // register: (user) => {
         //     authObject.isLoggedIn = true;
         //     authObject.user = user;
@@ -35,9 +31,9 @@ const AuthProvider = (props) => {
         // isLoggedIn: () => {
         //     return authObject.isLoggedIn;
         // },
-        // getUser: () => {
-        //     return authObject.user;
-        // },
+        getUser: () => {
+            return authObject.user;
+        },
         // getUserName: () => {
         //     return authObject.user.name;
         // },
@@ -58,9 +54,9 @@ const AuthProvider = (props) => {
 
     return (
         <AuthContext.Provider value={authObject}>
-         {props.children}
+            {props.children}
         </AuthContext.Provider>
     );
 }
 
-export default AuthProvider 
+export default AuthProvider

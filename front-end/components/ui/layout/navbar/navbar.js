@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import classes from './navbar.module.css'
 import { useState, useContext } from 'react'
-import {AuthContext} from '../../../../context/authContext'
+import { AuthContext } from '../../../../context/authContext'
 
 const Navbar = () => {
 
-    const {user} = useContext(AuthContext)
+    const { user, logout } = useContext(AuthContext)
 
+    const logoutHandler = () => {
+        logout()
+    }
     return (
         <div className={classes.navContainer}>
             <div>
@@ -17,13 +20,16 @@ const Navbar = () => {
                 <p>
                     <Link href='/'> home </Link>
                 </p>
-                { user ?
+                {user ?
                     <>
                         <p>
                             <Link href='/profile'> profile </Link>
                         </p>
                         <p>
-                            <Link href='/logout'> logout </Link>
+                            <li href="" style={{
+                                listStyle: 'none', 
+                                cursor: 'pointer' 
+                            }} onClick={logoutHandler}> logout </li>
                         </p>
                     </>
                     :
@@ -36,7 +42,7 @@ const Navbar = () => {
                         </p>
                     </>
                 }
-             
+
             </div>
         </div>
     )
