@@ -9,9 +9,8 @@ import {AuthContext} from '../context/authContext'
 const Home = (props) => {
 
   const {user,getUser} = useContext(AuthContext)
-  console.log("user", user)
-  console.log("getUser", getUser())
 
+  console.log("user", user)
 
   return (
     <div className={styles.container}>

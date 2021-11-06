@@ -26,6 +26,9 @@ const Navbar = () => {
                             <Link href='/profile'> profile </Link>
                         </p>
                         <p>
+                            <Link href='/posts'> posts </Link>
+                        </p>
+                        <p>
                             <li href="" style={{
                                 listStyle: 'none', 
                                 cursor: 'pointer' 

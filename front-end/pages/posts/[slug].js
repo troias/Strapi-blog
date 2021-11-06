@@ -1,8 +1,8 @@
 import { getPostBySlug, getAllPosts } from "../../helper/strapiApi";
 import { formatImgUrl } from "../../helper/helperFunctions";
+import {useRouter} from 'next/router'
 import Image from "next/image";
 import { useState, useRef, useEffect, useContext } from "react";
-import { useRouter } from "next/router";
 import classes from "../../components/posts/post.module.css";
 import {AuthContext} from '../../context/authContext'
 
@@ -10,7 +10,7 @@ import {AuthContext} from '../../context/authContext'
 const PostDetail = ({ post }) => {
 
     const {user, setUser} = useContext(AuthContext)
-
+    const router = useRouter()
     const { query } = useRouter()
 
     console.log("query", query)
@@ -28,6 +28,8 @@ const PostDetail = ({ post }) => {
         }
     }, [edit]);
 
+    
+
 
 
     const deleteHandler = async () => {
@@ -36,11 +38,12 @@ const PostDetail = ({ post }) => {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${user.jwt}`,
                 },
             });
             const res = await req.json();
             console.log(res);
-            window.location.href = "/posts";
+            router.push('/')
         } catch (error) {
             console.log(error);
         }
@@ -60,6 +63,7 @@ const PostDetail = ({ post }) => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${user.jwt}`,
                 },
                 body: JSON.stringify({
                     title: title,
@@ -98,7 +102,9 @@ const PostDetail = ({ post }) => {
                         </div>
                     </div>
                 </div>
-                <div>
+                {user && user.jwt && 
+                    <>
+                 <div>
                     <button type="button" onClick={deleteHandler}>
                         Delete
                     </button>
@@ -108,6 +114,9 @@ const PostDetail = ({ post }) => {
                         Edit
                     </button>
                 </div>
+                </>
+                }
+                
                 <div className={classes.edit}>
                     {edit && (
                         <form onSubmit={editHandler} className={classes.editForm}>

@@ -1,6 +1,8 @@
 import { useFormik } from "formik";
-import {useState} from 'react';
+import { useRouter } from "next/router"
+import { useState, useContext, useEffect } from 'react';
 import * as Yup from "yup";
+import { AuthContext } from '../../context/authContext';
 import classes from "./createPostPage.module.css";
 
 const CreatePostSchema = Yup.object().shape({
@@ -16,25 +18,41 @@ const CreatePostSchema = Yup.object().shape({
 });
 
 const AddPostForm = () => {
-
+     const router = useRouter();
     const [error, setError] = useState(null);
+    const { user } = useContext(AuthContext);
+    console.log("user", user)
+
+
+    useEffect(() => {
+        if (!user) {
+            setError("You must be logged in to create a post")
+        }
+    }, [user]);
 
     const addPostHandler = async (postObj) => {
 
         try {
             const req = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/posts`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${user.jwt}`
+                },
                 body: postObj
             })
-    
+
             const res = await req.json()
+           
+            if (res.error) {
+                setError(res.error)
+                return
+            } 
             console.log("handlerObjResp", res);
-            window.location.href = "/posts";
         } catch (error) {
             console.log("error", error);
         }
-       
-       
+
+
     };
 
     const formik = useFormik({
@@ -46,7 +64,7 @@ const AddPostForm = () => {
         validationSchema: CreatePostSchema,
 
         onSubmit: async (values) => {
-         
+
 
             // console.log("data", data);
             const formData = new FormData()
@@ -54,13 +72,14 @@ const AddPostForm = () => {
             formData.append('files.image', values.file)
 
             await addPostHandler(formData);
+            router.push("/posts")
         },
     });
     // console.log("formik", formik);
     return (
         <div className={classes.addPostContainer}>
             {error && <div className={classes.error}>{error}</div>}
-            <form onSubmit={formik.handleSubmit}>
+            {user && <form onSubmit={formik.handleSubmit}>
                 <div>
                     <label htmlFor="title">Title</label>
                     <input
@@ -107,7 +126,8 @@ const AddPostForm = () => {
                         <p>{`${formik.errors.description}`}</p>
                     ) : null}
                 </div>
-            </form>
+            </form>}
+
         </div>
     );
 };

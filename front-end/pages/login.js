@@ -48,7 +48,7 @@ const Login = () => {
 
                 if (!req.ok) {
                     const error = await req.json();
-                    console.log("error", error);
+                
                     setError(error.message[0].messages[0].message);
                     return;
                 } else {
@@ -62,13 +62,11 @@ const Login = () => {
 
             }
 
-            console.log("res", res);
-            console.log("values", values);
+        
         },
     });
 
-    console.log("error", error);
-    console.log("user", user);
+  
     return (
         <div>
             <form onSubmit={formik.handleSubmit}>
