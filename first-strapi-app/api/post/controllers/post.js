@@ -25,10 +25,37 @@
        if (!files || !files.image) {
         ctx.throw(400, "please add a file")
       }
-       entity = await strapi.services.post.create({...data, likes: 0,}, { files,  });
+      const {user} = ctx.state;
+      console.log("user", user)
+
+       entity = await strapi.services.post.create({...data, ...{likes: 0, author: user}}, { files,  });
      } else {
        ctx.throw(400, 'You must submit a multipart req')
      }
      return sanitizeEntity(entity, { model: strapi.models.post });
    },
+
+   async update(ctx) {
+    const { id } = ctx.params;
+    const {user} = ctx.state;
+
+    let entity;
+    if (ctx.is('multipart')) {
+     ctx.throw(400, 'Please only update descripton')
+    } else {
+      delete ctx.request.body.likes
+      entity = await strapi.services.post.update({ id, author: user.id }, ctx.request.body);
+      //only works if post is owned and exists
+    }
+
+    return sanitizeEntity(entity, { model: strapi.models.post });
+  },
+
+  async delete(ctx) {
+    const { id } = ctx.params;
+
+    const entity = await strapi.services.restaurant.delete({ id, author: user });
+    return sanitizeEntity(entity, { model: strapi.models.restaurant });
+  },
+
  };
