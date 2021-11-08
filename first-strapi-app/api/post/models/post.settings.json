@@ -41,6 +41,10 @@
     "slug": {
       "type": "uid",
       "targetField": "title"
+    },
+    "like_events": {
+      "via": "post",
+      "collection": "like"
     }
   }
 }

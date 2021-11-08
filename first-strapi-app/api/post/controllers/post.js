@@ -53,9 +53,9 @@
 
   async delete(ctx) {
     const { id } = ctx.params;
-
-    const entity = await strapi.services.restaurant.delete({ id, author: user });
-    return sanitizeEntity(entity, { model: strapi.models.restaurant });
+    const {user} = ctx.state;
+    const entity = await strapi.services.post.delete({ id, author: user.id });
+    return sanitizeEntity(entity, { model: strapi.models.post });
   },
 
  };
