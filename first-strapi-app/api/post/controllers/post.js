@@ -26,7 +26,7 @@
         ctx.throw(400, "please add a file")
       }
       const {user} = ctx.state;
-      console.log("user", user)
+
 
        entity = await strapi.services.post.create({...data, ...{likes: 0, author: user}}, { files,  });
      } else {

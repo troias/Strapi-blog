@@ -2,28 +2,25 @@
   "routes": [
     {
       "method": "GET",
-      "path": "/likes",
+      "path": "/likes/given",
       "handler": "like.find",
       "config": {
-        "policies": []
+        "policies": [
+          "isTargetUserLoggedIn"
+        ]
       }
     },
     {
       "method": "GET",
-      "path": "/likes/count",
-      "handler": "like.count",
+      "path": "/likes/received",
+      "handler": "like.find",
       "config": {
-        "policies": []
+        "policies": [
+          "postAuthorIsMe"
+        ]
       }
     },
-    {
-      "method": "GET",
-      "path": "/likes/:id",
-      "handler": "like.findOne",
-      "config": {
-        "policies": []
-      }
-    },
+
     {
       "method": "POST",
       "path": "/likes",
@@ -33,16 +30,8 @@
       }
     },
     {
-      "method": "PUT",
-      "path": "/likes/:id",
-      "handler": "like.update",
-      "config": {
-        "policies": []
-      }
-    },
-    {
       "method": "DELETE",
-      "path": "/likes/:id",
+      "path": "/likes/:postId",
       "handler": "like.delete",
       "config": {
         "policies": []

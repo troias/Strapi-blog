@@ -1,5 +1,5 @@
 import { getPostBySlug, getAllPosts } from "../../helper/strapiApi";
-import { formatImgUrl } from "../../helper/helperFunctions";
+import { formatImgUrl,capatalize } from "../../helper/helperFunctions";
 import { useRouter } from 'next/router'
 import Image from "next/image";
 import { useState, useRef, useEffect, useContext } from "react";
@@ -13,15 +13,23 @@ const PostDetail = ({ post }) => {
   const router = useRouter()
   const { query } = useRouter()
 
-  console.log("posts", post)
 
-  console.log("query", query)
-  console.log("user", user)
+
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  })
 
   const titleRef = useRef();
   const descRef = useRef();
 
   const [edit, setEdit] = useState(false);
+  const [error, setError] = useState()
 
 
   useEffect(() => {
@@ -44,10 +52,10 @@ const PostDetail = ({ post }) => {
         },
       });
       const res = await req.json();
-      console.log(res);
+    
       router.push('/')
     } catch (error) {
-      console.log(error);
+ 
     }
   };
 
@@ -59,9 +67,7 @@ const PostDetail = ({ post }) => {
 
     const title = titleRef.current.value;
     const desc = descRef.current.value;
-    console.log("title", title);
-    console.log("desc", desc);
-    console.log("Postid", post.id)
+ 
     try {
       const req = await fetch(`http://localhost:1337/posts/${post.id}`, {
         method: "PUT",
@@ -77,19 +83,67 @@ const PostDetail = ({ post }) => {
 
       if (!req.ok) {
         throw new Error("Something went wrong");
-       
+
       }
       const res = await req.json();
-
-      console.log(res);
+      
+    
 
 
       router.push(`/posts`);
 
     } catch (error) {
-      console.log(error);
+      
     }
   };
+
+  const likeHandler = async () => {
+
+    try {
+      const req = await fetch(`http://localhost:1337/likes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.jwt}`,
+        },
+        body: JSON.stringify({
+          post: parseInt(post.id),
+        }),
+      });
+
+      const res = await req.json();
+    
+      if (res.error) {
+        setError({message: res.message, status: res.statusCode})
+      }
+   
+    } catch (error) {
+   
+    }
+  }
+
+  const unlikeHandler = async () => {
+   
+    try {
+      const req = await fetch(`http://localhost:1337/likes/${post.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.jwt}`,
+        },
+        body: JSON.stringify({
+          post: parseInt(post.id)
+        }),
+      });
+      if (res.error) {
+        setError({message: res.message, status: res.statusCode})
+      }
+      const res = await req.json();
+    
+    } catch (error) {
+
+    }
+  }
 
   return (
     <div className={classes.container}>
@@ -101,7 +155,8 @@ const PostDetail = ({ post }) => {
                 <div className="col-md-12">
                   <h1 className="card-title">{post.title}</h1>
                   <p className="card-text">{post.description}</p>
-                  <p className="card-text">{post.author.username}</p>
+                  { post.author && <p className="card-text">{post.author.username}</p>}
+                  <p className="card-text">Likes {post.likes}</p>
                   <Image
                     src={formatImgUrl(post.image[0].url)}
                     width={200}
@@ -112,6 +167,15 @@ const PostDetail = ({ post }) => {
             </div>
           </div>
         </div>
+        {error && <p>{`Error: ${capatalize(error.message)}`} {`Error status: ${error.status}`}</p>}
+        {user && <> <button type="button" onClick={likeHandler}>
+          Like
+        </button>
+          <button type="button" onClick={unlikeHandler}>
+            Unlike
+          </button>
+        </>}
+
         {user && user.jwt &&
           <>
             <div>
@@ -123,6 +187,7 @@ const PostDetail = ({ post }) => {
               <button type="button" onClick={editToggleHandler}>
                 Edit
               </button>
+
             </div>
           </>
         }
@@ -156,18 +221,16 @@ export const getStaticPaths = async (ctx) => {
 };
 
 export const getStaticProps = async ({ params }) => {
-  let post = [];
+  let post = []
 
-  try {
+   try {
     post = await getPostBySlug(params.slug);
-  } catch (error) { }
+ } catch (error) {
+  
+    }
 
   return {
-    props: {
-      post: {
-        ...post[0],
-      },
-    }, revalidate: 6
+    props: { post:  await getPostBySlug(params.slug)}, revalidate: 10,
   };
 };
 export default PostDetail;
