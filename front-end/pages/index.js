@@ -4,13 +4,11 @@ import styles from '../styles/Home.module.css'
 import useRouter from 'next/router'
 import {useContext} from 'react'
 import {AuthContext} from '../context/authContext'
-
+import {LikesContext} from '../context/likesContext'
 
 const Home = (props) => {
 
-  const {user,getUser} = useContext(AuthContext)
 
-  console.log("user", user)
 
   return (
     <div className={styles.container}>

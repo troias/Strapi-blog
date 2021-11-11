@@ -20,35 +20,14 @@ const AuthProvider = (props) => {
         setUser,
 
         logout: () => {
-            // setIsLoggedIn(false),
+        
             authObject.setUser(null);
 
         },
-        // register: (user) => {
-        //     authObject.isLoggedIn = true;
-        //     authObject.user = user;
-        // },
-        // isLoggedIn: () => {
-        //     return authObject.isLoggedIn;
-        // },
+
         getUser: () => {
             return authObject.user;
         },
-        // getUserName: () => {
-        //     return authObject.user.name;
-        // },
-        // getUserEmail: () => {
-        //     return authObject.user.email;
-        // },
-        // getUserPassword: () => {
-        //     return authObject.user.password;
-        // },
-        // getUserConfirmPassword: () => {
-        //     return authObject.user.confirmPassword;
-        // },
-        // getUserIsAdmin: () => {
-        //     return authObject.user.isAdmin;
-        // },  
 
     }
 

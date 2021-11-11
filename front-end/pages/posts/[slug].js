@@ -1,18 +1,59 @@
 import { getPostBySlug, getAllPosts } from "../../helper/strapiApi";
-import { formatImgUrl,capatalize } from "../../helper/helperFunctions";
-import { useRouter } from 'next/router'
+import { formatImgUrl, capatalize } from "../../helper/helperFunctions";
+import { useRouter } from "next/router";
 import Image from "next/image";
 import { useState, useRef, useEffect, useContext } from "react";
 import classes from "../../components/posts/post.module.css";
-import { AuthContext } from '../../context/authContext'
+import { AuthContext } from "../../context/authContext";
+import { LikesContext } from "../../context/likesContext";
 
 
 const PostDetail = ({ post }) => {
+  console.log("postProps", post);
 
-  const { user, setUser } = useContext(AuthContext)
-  const router = useRouter()
-  const { query } = useRouter()
+  const { user } = useContext(AuthContext);
+  const { likesGiven, likesReceived, reloader } = useContext(LikesContext);
+  const router = useRouter();
+  const { query } = useRouter();
+  const [likes, setLikes] = useState(post.likes);
 
+ 
+
+  const isPostAlreadyLiked = (() => {
+    return (
+      likesGiven &&
+      likesGiven.find((likes) => likes.post && likes.post.id === post.id)
+    );
+  })();
+ 
+
+
+  const getLikes = async () => {
+
+      await getPostBySlug(query.slug).then((res) => {
+        console.log("res", res)
+        if (res.likes !== likes) {
+            setLikes(res.likes);
+        }
+      }
+      );
+  } 
+
+
+  
+
+    useEffect(() => {
+      if (user) {
+        getLikes()
+      }
+      
+    }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  })
 
 
 
@@ -23,13 +64,14 @@ const PostDetail = ({ post }) => {
       }, 3000);
       return () => clearTimeout(timer);
     }
-  })
+  });
 
   const titleRef = useRef();
   const descRef = useRef();
 
   const [edit, setEdit] = useState(false);
-  const [error, setError] = useState()
+  const [error, setError] = useState();
+
 
 
   useEffect(() => {
@@ -37,10 +79,6 @@ const PostDetail = ({ post }) => {
       titleRef.current.focus();
     }
   }, [edit]);
-
-
-
-
 
   const deleteHandler = async () => {
     try {
@@ -52,23 +90,23 @@ const PostDetail = ({ post }) => {
         },
       });
       const res = await req.json();
-    
-      router.push('/')
-    } catch (error) {
- 
-    }
+
+      router.push("/");
+    } catch (error) { }
   };
 
   const editToggleHandler = () => {
     setEdit(!edit);
   };
+
   const editHandler = async (e) => {
     e.preventDefault();
-
+  
     const title = titleRef.current.value;
     const desc = descRef.current.value;
- 
+
     try {
+     
       const req = await fetch(`http://localhost:1337/posts/${post.id}`, {
         method: "PUT",
         headers: {
@@ -82,23 +120,21 @@ const PostDetail = ({ post }) => {
       });
 
       if (!req.ok) {
-        throw new Error("Something went wrong");
-
+       
+        const res = await req.json();
+        setError({ message: res.message, status: res.statusCode });
+        return;
       }
       const res = await req.json();
-      
-    
-
+  
 
       router.push(`/posts`);
-
     } catch (error) {
-      
+   
     }
   };
 
   const likeHandler = async () => {
-
     try {
       const req = await fetch(`http://localhost:1337/likes`, {
         method: "POST",
@@ -110,21 +146,21 @@ const PostDetail = ({ post }) => {
           post: parseInt(post.id),
         }),
       });
-
       const res = await req.json();
-    
+      reloader();
+     
+
+   
       if (res.error) {
-        setError({message: res.message, status: res.statusCode})
+        setError({ message: res.message, status: res.statusCode });
       }
-   
-    } catch (error) {
-   
-    }
-  }
+    } catch (error) { }
+  };
 
   const unlikeHandler = async () => {
    
     try {
+   
       const req = await fetch(`http://localhost:1337/likes/${post.id}`, {
         method: "DELETE",
         headers: {
@@ -132,18 +168,24 @@ const PostDetail = ({ post }) => {
           Authorization: `Bearer ${user.jwt}`,
         },
         body: JSON.stringify({
-          post: parseInt(post.id)
+          post: parseInt(post.id),
         }),
       });
-      if (res.error) {
-        setError({message: res.message, status: res.statusCode})
-      }
-      const res = await req.json();
-    
-    } catch (error) {
 
-    }
-  }
+
+      const res = await req.json();
+      reloader();
+
+   
+      if (!res.ok) {
+     
+        setError({ message: res.message, status: res.statusCode });
+      }
+    
+
+
+    } catch (error) { }
+  };
 
   return (
     <div className={classes.container}>
@@ -155,8 +197,10 @@ const PostDetail = ({ post }) => {
                 <div className="col-md-12">
                   <h1 className="card-title">{post.title}</h1>
                   <p className="card-text">{post.description}</p>
-                  { post.author && <p className="card-text">{post.author.username}</p>}
-                  <p className="card-text">Likes {post.likes}</p>
+                  {post.author && (
+                    <p className="card-text">{post.author.username}</p>
+                  )}
+                  <p className="card-text">Likes {likes}</p>
                   <Image
                     src={formatImgUrl(post.image[0].url)}
                     width={200}
@@ -167,16 +211,28 @@ const PostDetail = ({ post }) => {
             </div>
           </div>
         </div>
-        {error && <p>{`Error: ${capatalize(error.message)}`} {`Error status: ${error.status}`}</p>}
-        {user && <> <button type="button" onClick={likeHandler}>
-          Like
-        </button>
-          <button type="button" onClick={unlikeHandler}>
-            Unlike
-          </button>
-        </>}
+        {error && error.message && (
+          <p>
+            {`Error: ${capatalize(error.message)}`}{" "}
+            {`Error status: ${error.status}`}
+          </p>
+        )}
 
-        {user && user.jwt &&
+        {user && (
+          <>
+            {isPostAlreadyLiked ? (
+              <button onClick={unlikeHandler} className="btn btn-primary">
+                Unlike
+              </button>
+            ) : (
+              <button onClick={likeHandler} className="btn btn-primary">
+                Like
+              </button>
+            )}
+          </>
+        )}
+
+        {user && user.jwt && (
           <>
             <div>
               <button type="button" onClick={deleteHandler}>
@@ -187,21 +243,30 @@ const PostDetail = ({ post }) => {
               <button type="button" onClick={editToggleHandler}>
                 Edit
               </button>
-
             </div>
           </>
-        }
+        )}
 
         <div className={classes.edit}>
-          {edit &&
+          {edit && (
             <form onSubmit={editHandler} className={classes.editForm}>
-              <input type="text" name="title" ref={titleRef} placeholder="edit title" />
-              <input type="text" name="description" ref={descRef} placeholder="edit desc" />
+              <input
+                type="text"
+                name="title"
+                ref={titleRef}
+                placeholder="edit title"
+              />
+              <input
+                type="text"
+                name="description"
+                ref={descRef}
+                placeholder="edit desc"
+              />
               <div>
                 <button type="submit">Submit</button>
               </div>
             </form>
-          }
+          )}
         </div>
       </div>
     </div>
@@ -216,21 +281,14 @@ export const getStaticPaths = async (ctx) => {
 
   return {
     paths: paths,
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
 export const getStaticProps = async ({ params }) => {
-  let post = []
 
-   try {
-    post = await getPostBySlug(params.slug);
- } catch (error) {
-  
-    }
+  const post = await getPostBySlug(params.slug);
 
-  return {
-    props: { post:  await getPostBySlug(params.slug)}, revalidate: 10,
-  };
+  return { props: { post: post }, revalidate: 1 };
 };
 export default PostDetail;

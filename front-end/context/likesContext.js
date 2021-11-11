@@ -1,66 +1,72 @@
 
-import React, {useState, useEffect, useContext} from 'react'
-import {AuthContext} from '../context/authContext'
+import React, { useState, useEffect, useContext } from 'react'
+import { AuthContext } from '../context/authContext'
 
 
-const LikesContext = React.createContext({
+export const LikesContext = React.createContext({
 
 });
 
 
-export const LikesProvider = (props) => {
-    const {user} = useContext(AuthContext);
+const LikesProvider = ({ children }) => {
+    const { user } = useContext(AuthContext);
+
 
     const [likesGiven, setLikesGiven] = useState([]);
     const [likesReceived, setLikesReceived] = useState([]);
 
-    useEffect(() => {
-        if (user) {
+    const reloader = () => {
+            if (user) {
 
-            const likesGiven = async () => {
-                const req = await fetch(`http://localhost:1337/likes/given?user=${user.user.id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                
-                const res = await req.json();
-                setLikesGiven(res);
-            }
-            likesGiven();
+                const likesGiven = async () => {
+                    const req = await fetch(`http://localhost:1337/likes/given?user=${user.user.id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${user.jwt}`
+                        }
+                    });
 
-            const likesReceived = async () => {
-                const req = await fetch(`http://localhost:1337/likes/received?post.user=${user.user.id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                
-                const res = await req.json();
-                setLikesReceived(res);
+                    const res = await req.json();
+                    setLikesGiven(res);
+                }
+                likesGiven();
+
+                const likesReceived = async () => {
+                    const req = await fetch(`http://localhost:1337/likes/received?post.author=${user.user.id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${user.jwt}`
+                        }
+                    });
+
+                    const res = await req.json();
+                    setLikesReceived(res);
+                }
+                likesReceived();
             }
-            likesReceived();
         }
+    
+
+    useEffect(() => {
+         reloader();
+
     }, [user]);
 
 
-    console.log("likesGiven", likesGiven);
-    console.log("likesReceived", likesReceived);
+  
 
     const likeContextObj = {
-        likesGiven,
-        likesReceived
+        likesGiven, likesReceived, reloader
+       
     }
 
     return (
-        <LikesContext.Provider value={ likeContextObj }>
-            {props.children}
+        <LikesContext.Provider value={likeContextObj}>
+            {children}
         </LikesContext.Provider>
     )
 }
 
-export default LikesContext
+export default LikesProvider
